@@ -1,55 +1,34 @@
 import instaloader
 import os
-import json
 from telegram import Bot
 
-# تنظیمات محیطی
+# تنظیمات
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 TELEGRAM_CHANNEL_ID = os.getenv("TELEGRAM_CHANNEL_ID")
-INSTAGRAM_USERS = ["ft360_ir", "bbcpersian"]
-
-# فایل لیست پست‌های ارسال‌شده
-SENT_POSTS_FILE = "sent_posts.json"
 
 bot = Bot(token=TELEGRAM_BOT_TOKEN)
 
-if os.path.exists(SENT_POSTS_FILE):
-    with open(SENT_POSTS_FILE, "r") as f:
-        sent_posts = json.load(f)
-else:
-    sent_posts = []
-
-# بارگذاری session
+# اتصال به اینستاگرام با session
 loader = instaloader.Instaloader()
 loader.load_session_from_file("moshaveranpooya", filename="session-moshaveranpooya")
 
-for username in INSTAGRAM_USERS:
-    try:
-        profile = instaloader.Profile.from_username(loader.context, username)
-        posts = profile.get_posts()
-        for post in posts:
-            shortcode = post.shortcode
-            if shortcode in sent_posts:
-                continue  # پست قبلاً ارسال شده
+try:
+    profile = instaloader.Profile.from_username(loader.context, "ft360_ir")
+    latest_post = next(profile.get_posts())  # گرفتن آخرین پست
 
-            post_url = f"https://www.instagram.com/p/{shortcode}/"
-            caption = post.caption or ""
-            message = f"{caption}\n\n📌 [مشاهده پست در اینستاگرام]({post_url})"
+    post_url = f"https://www.instagram.com/p/{latest_post.shortcode}/"
+    caption = latest_post.caption or ""
+    message = f"{caption}\n\n📌 [مشاهده پست در اینستاگرام]({post_url})"
 
-            # ارسال عکس و متن به کانال
-            bot.send_photo(
-                chat_id=TELEGRAM_CHANNEL_ID,
-                photo=post.url,
-                caption=message,
-                parse_mode="Markdown"
-            )
+    # ارسال پست به تلگرام
+    bot.send_photo(
+        chat_id=TELEGRAM_CHANNEL_ID,
+        photo=latest_post.url,
+        caption=message,
+        parse_mode="Markdown"
+    )
 
-            sent_posts.append(shortcode)
-            break  # فقط یک پست جدید از هر پیج
+    print("✅ پست آخر ft360_ir با موفقیت ارسال شد!")
 
-    except Exception as e:
-        print(f"❌ خطا در دریافت پست از {username}: {e}")
-
-# ذخیره لیست پست‌های ارسال‌شده
-with open(SENT_POSTS_FILE, "w") as f:
-    json.dump(sent_posts, f)
+except Exception as e:
+    print(f"❌ خطا در دریافت یا ارسال پست: {e}")
