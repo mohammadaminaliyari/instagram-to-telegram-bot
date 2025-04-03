@@ -21,7 +21,7 @@ else:
 
 # لاگین به اینستاگرام با session
 loader = instaloader.Instaloader()
-loader.load_session_from_file("session-moshaveranpooya")
+loader.load_session_from_file("moshaveranpooya")
 
 for username in INSTAGRAM_USERS:
     try:
