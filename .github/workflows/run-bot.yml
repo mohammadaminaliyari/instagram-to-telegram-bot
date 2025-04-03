@@ -2,7 +2,7 @@ name: Run Instagram to Telegram Bot
 
 on:
   schedule:
-    - cron: "0 6 * * *"  # اجرای هر روز ساعت ۱۰:۳۰ صبح ایران
+    - cron: "0 6 * * *"  # اجرای هر روز ساعت 10:30 صبح ایران
   workflow_dispatch:
 
 jobs:
@@ -23,11 +23,11 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Create session file
+      - name: Create session file from base64
         env:
-          SESSION_DATA: ${{ secrets.INSTAGRAM_SESSION_USER }}
+          SESSION_DATA_B64: ${{ secrets.INSTAGRAM_SESSION_B64 }}
         run: |
-          echo "$SESSION_DATA" > session-moshaveranpooya
+          echo "$SESSION_DATA_B64" | base64 --decode > session-moshaveranpooya
 
       - name: Run the bot
         env:
